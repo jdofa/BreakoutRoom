@@ -1,38 +1,29 @@
 import socket
 import threading
+import random
 
-username = input("Choose your username: ")
+client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (internet socket, UDP)
+port = random.randint(8000,9000)
+client.bind(("localhost", port)) #when presenting, no need to specify different ports
+username = input("Enter a username: ")
 
-host = '127.0.0.1' #localhost
-port = 30000 #make sure to use port that isn't popular
-
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #socket.socket(specifies internet socket, specifies TCP connection)
-client.connect(('127.0.0.1', 30000)) #should be same as server (address, port)
-
-#
-def receive():
+def rcv(): #handles recieving messages from server and prints them
     while True:
         try:
-            message = client.recv(1024).decode('ascii') #message recieved from server
-            if message == 'Username:': #if server asks for username
-                client.send(username.encode('ascii')) #send the server your username
-            else:
-                print(message) #otherwise print whatever the server sent
+            msg, _ = client.recvfrom(1024)
+            print(msg.decode())
         except:
-            #if there is an excception, disconnect client
-            print("An error occured! You have been disconnected.")
-            client.close()
-            break
+            pass
 
-def write():
-    while True: #formatting and sending the message
-        message = '{}: {}'.format(username, input('')) 
-        client.send(message.encode('ascii')) 
+thread1 = threading.Thread(target=rcv)
+thread1.start()
 
-#thread that handles recieving messages
-receive_thread = threading.Thread(target=receive)
-receive_thread.start()
+client.sendto(f"CLIENT_ADDED:{username}".encode(), ("localhost", 9999)) #specifies new client so server can notify everyone that new client joined
 
-#thread that handles sending messages
-write_thread = threading.Thread(target=write)
-write_thread.start()
+while True: #send user input to server
+    msg = input("")
+    if msg == "quit":
+        exit()
+    else:
+        client.sendto(f'{username}: {msg}'.encode(), ("localhost", 9999))
+
