@@ -3,9 +3,9 @@ import threading
 import random
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (internet socket, UDP)
-port = random.randint(8000,8999)
+port = 9000
 username = input("Enter a username: ")
-client.bind(("localhost", port)) #when presenting, no need to specify different ports
+client.bind(("localhost", 9000))
 
 def rcv(): #handles recieving messages from server and prints them
     while True:
@@ -26,5 +26,5 @@ while True: #send user input to server
     if msg == "quit":
         exit()
     else:
-        client.sendto(f'{username}({port}): {msg}'.encode(), ("localhost", 9999))
+        client.sendto(f'{username} (Instructor): {msg}'.encode(), ("localhost", 9999))
 
